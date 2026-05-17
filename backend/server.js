@@ -9,10 +9,11 @@ const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "https://whatsapp-clone-sepia-three.vercel.app";
 
 // ─── Middlewares ──────────────────────────────────────────────────────────────
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
 
 // Static files for uploads
@@ -49,20 +50,34 @@ app.get("/api/health", (_, res) => res.json({ ok: true }));
 // ─── Socket.IO server ─────────────────────────────────────────────────────────
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: { origin: FRONTEND_URL, methods: ["GET", "POST"] },
 });
 
 // In-memory state
-const users = new Map();       // socketId → { id, name, status, avatar, rooms }
-const rooms = new Map();       // roomName → Set of socketIds
+const users = new Map(); // socketId → { id, name, status, avatar, rooms }
+const rooms = new Map(); // roomName → Set of socketIds
 const GENERAL_ROOM = "General";
 rooms.set(GENERAL_ROOM, new Set());
 
-const AVAILABLE_ROOMS = ["General", "Tecnología", "Música", "Deportes", "Cine", "Videojuegos"];
-AVAILABLE_ROOMS.forEach((r) => { if (!rooms.has(r)) rooms.set(r, new Set()); });
+const AVAILABLE_ROOMS = [
+  "General",
+  "Tecnología",
+  "Música",
+  "Deportes",
+  "Cine",
+  "Videojuegos",
+];
+AVAILABLE_ROOMS.forEach((r) => {
+  if (!rooms.has(r)) rooms.set(r, new Set());
+});
 
 function getUserList() {
-  return [...users.values()].map(({ id, name, status, avatar }) => ({ id, name, status, avatar }));
+  return [...users.values()].map(({ id, name, status, avatar }) => ({
+    id,
+    name,
+    status,
+    avatar,
+  }));
 }
 
 function getRoomList() {
